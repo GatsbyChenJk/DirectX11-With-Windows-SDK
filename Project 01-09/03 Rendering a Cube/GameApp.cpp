@@ -28,6 +28,10 @@ bool GameApp::Init()
     if (!InitResource())
         return false;
 
+    // 初始化鼠标，键盘不需要
+    m_pMouse->SetWindow(m_hMainWnd);
+    m_pMouse->SetMode(DirectX::Mouse::MODE_ABSOLUTE);
+
     return true;
 }
 
@@ -40,13 +44,57 @@ void GameApp::UpdateScene(float dt)
 {
     
     static float phi = 0.0f, theta = 0.0f;
-    phi += 0.3f * dt, theta += 0.37f * dt;
-    m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationX(phi) * XMMatrixRotationY(theta));
+     //phi += 0.3f * dt, theta += 0.37f * dt;
+     m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationX(phi) * XMMatrixRotationY(theta));
     // 更新常量缓冲区，让立方体转起来
     D3D11_MAPPED_SUBRESOURCE mappedData;
     HR(m_pd3dImmediateContext->Map(m_pConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
     memcpy_s(mappedData.pData, sizeof(m_CBuffer), &m_CBuffer, sizeof(m_CBuffer));
     m_pd3dImmediateContext->Unmap(m_pConstantBuffer.Get(), 0);
+    //用键鼠控制立方体旋转
+    //获取鼠标状态
+    Mouse::State mouseState = m_pMouse->GetState();
+    Mouse::State lastMouseState = m_MouseTracker.GetLastState();
+
+    //获取键盘状态
+    Keyboard::State keyState = m_pKeyboard->GetState();
+    Keyboard::State lastKeyState = m_KeyboardTracker.GetLastState();
+    // 更新鼠标按钮状态   
+    m_MouseTracker.Update(mouseState);
+    //更新键盘按钮状态
+    m_KeyboardTracker.Update(keyState);
+    //鼠标左键按下时可选择四棱锥
+    if (mouseState.leftButton == true && m_MouseTracker.leftButton == m_MouseTracker.HELD)
+    {
+        // 旋转立方体
+        theta -= (mouseState.x - lastMouseState.x) * 0.01f;
+        phi -= (mouseState.y - lastMouseState.y) * 0.01f;
+        
+    }
+
+    m_CBuffer.world = XMMatrixRotationY(theta) * XMMatrixRotationX(phi);
+
+    if (keyState.IsKeyDown(Keyboard::W))
+    {
+        phi += dt * 3;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::S))
+    {
+        phi -= dt * 3;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::A))
+    {
+        theta += dt * 3;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::D))
+    {
+        theta -= dt * 3;
+    }
+
+    m_CBuffer.world = XMMatrixRotationY(theta) * XMMatrixRotationX(phi);
 }
 
 void GameApp::DrawScene()
@@ -59,7 +107,7 @@ void GameApp::DrawScene()
     m_pd3dImmediateContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     // 绘制立方体
-    m_pd3dImmediateContext->DrawIndexed(36, 0, 0);
+    m_pd3dImmediateContext->DrawIndexed(18, 0, 0);
     HR(m_pSwapChain->Present(0, 0));
 }
 
@@ -96,12 +144,13 @@ bool GameApp::InitResource()
     VertexPosColor vertices[] =
     {
         { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        //{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
         { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+        //{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+        //{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }
     };
     // 设置顶点缓冲区描述
@@ -123,22 +172,27 @@ bool GameApp::InitResource()
     DWORD indices[] = {
         // 正面
         0, 1, 2,
-        2, 3, 0,
+        //2, 3, 0,
         // 左面
-        4, 5, 1,
-        1, 0, 4,
+        3, 1, 0,
+        //4, 5, 1,
+        //1, 0, 4,
         // 顶面
-        1, 5, 6,
-        6, 2, 1,
+        //1, 5, 6,
+        //6, 2, 1,
         // 背面
-        7, 6, 5,
-        5, 4, 7,
+        4, 1, 3,
+        //7, 6, 5,
+        //5, 4, 7,
         // 右面
-        3, 2, 6,
-        6, 7, 3,
+        2, 1, 4,
+        //3, 2, 6,
+        //6, 7, 3,
         // 底面
-        4, 0, 3,
-        3, 7, 4
+        3, 0, 2,
+        2, 4, 3
+        //4, 0, 3,
+        //3, 7, 4
     };
     // 设置索引缓冲区描述
     D3D11_BUFFER_DESC ibd;
