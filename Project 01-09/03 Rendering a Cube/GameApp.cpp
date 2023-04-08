@@ -43,9 +43,10 @@ void GameApp::OnResize()
 void GameApp::UpdateScene(float dt)
 {
     
-    static float phi = 0.0f, theta = 0.0f;
+    static float phi = 0.0f, theta = 0.0f,lambda = 1.0f,betaX = 1.0f, betaY = 1.0f;
+    //lambda为缩放比例,betaX为x轴平移距离，betaY为y轴平移距离
      //phi += 0.3f * dt, theta += 0.37f * dt;
-     m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationX(phi) * XMMatrixRotationY(theta));
+    // m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationX(phi) * XMMatrixRotationY(theta));
     // 更新常量缓冲区，让立方体转起来
     D3D11_MAPPED_SUBRESOURCE mappedData;
     HR(m_pd3dImmediateContext->Map(m_pConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
@@ -63,38 +64,78 @@ void GameApp::UpdateScene(float dt)
     m_MouseTracker.Update(mouseState);
     //更新键盘按钮状态
     m_KeyboardTracker.Update(keyState);
-    //鼠标左键按下时可选择四棱锥
+    //鼠标左键按下时可旋转四棱锥
     if (mouseState.leftButton == true && m_MouseTracker.leftButton == m_MouseTracker.HELD)
     {
-        // 旋转立方体
+        
         theta -= (mouseState.x - lastMouseState.x) * 0.01f;
         phi -= (mouseState.y - lastMouseState.y) * 0.01f;
-        
+  
+    }
+    //鼠标中键按下时可移动四棱锥
+    if (mouseState.middleButton == true && m_MouseTracker.middleButton == m_MouseTracker.HELD)
+    {
+
+        betaX -= (lastMouseState.x - mouseState.x) * 0.01f;
+        betaY += (lastMouseState.y - mouseState.y) * 0.01f;
+
     }
 
-    m_CBuffer.world = XMMatrixRotationY(theta) * XMMatrixRotationX(phi);
+    lambda += (mouseState.scrollWheelValue - lastMouseState.scrollWheelValue) * 0.001f;//获取鼠标滚轮变化，实现用鼠标滚轮缩放
 
-    if (keyState.IsKeyDown(Keyboard::W))
+    //m_CBuffer.world = XMMatrixTranspose(XMMatrixRotationY(theta) * XMMatrixRotationX(phi)*XMMatrixScaling(lambda,lambda,lambda));
+    //H/J/K/L控制四棱锥自身上下左右旋转，W/A/S/D/控制上下左右平移，Q/E控制缩放
+    if (keyState.IsKeyDown(Keyboard::H))
     {
         phi += dt * 3;
     }
 
-    if (keyState.IsKeyDown(Keyboard::S))
+    if (keyState.IsKeyDown(Keyboard::J))
     {
         phi -= dt * 3;
     }
 
-    if (keyState.IsKeyDown(Keyboard::A))
+    if (keyState.IsKeyDown(Keyboard::K))
     {
         theta += dt * 3;
     }
 
-    if (keyState.IsKeyDown(Keyboard::D))
+    if (keyState.IsKeyDown(Keyboard::L))
     {
         theta -= dt * 3;
     }
 
-    m_CBuffer.world = XMMatrixRotationY(theta) * XMMatrixRotationX(phi);
+    if (keyState.IsKeyDown(Keyboard::Q))
+    {
+        lambda += dt * 0.5f;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::E))
+    {
+        lambda -= dt * 0.5f;
+    }
+   
+    if (keyState.IsKeyDown(Keyboard::W))
+    {
+        betaY += dt * 0.5f;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::A))
+    {
+        betaX -= dt * 0.5f;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::S))
+    {
+        betaY -= dt * 0.5f;
+    }
+
+    if (keyState.IsKeyDown(Keyboard::D))
+    {
+        betaX += dt * 0.5f;
+    }
+
+    m_CBuffer.world = XMMatrixTranspose( XMMatrixRotationY(theta) * XMMatrixRotationX(phi) * XMMatrixScaling(lambda, lambda, lambda) * XMMatrixTranslation(betaX,betaY,1.0f));
 }
 
 void GameApp::DrawScene()
@@ -143,12 +184,12 @@ bool GameApp::InitResource()
     //  0       3
     VertexPosColor vertices[] =
     {
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
         //{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
         //{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 2.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
         //{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
         //{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
         { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }

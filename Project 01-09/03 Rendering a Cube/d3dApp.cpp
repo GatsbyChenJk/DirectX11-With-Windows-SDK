@@ -225,6 +225,8 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             m_AppPaused = false;
             m_Timer.Start();
         }
+        m_pMouse->ProcessMessage(msg, wParam, lParam);
+        m_pKeyboard->ProcessMessage(msg, wParam, lParam);
         return 0;
 
         // WM_SIZE is sent when the user resizes the window.  
@@ -317,18 +319,33 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         ((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
         return 0;
     case WM_INPUT:
+        //鼠标滚轮
+    case WM_MOUSEWHEEL:
+
+    case WM_MOUSEHOVER:
+        //鼠标按键
     case WM_LBUTTONDOWN:
+
     case WM_MBUTTONDOWN:
+
     case WM_RBUTTONDOWN:
+
     case WM_LBUTTONUP:
+
     case WM_MBUTTONUP:
+
     case WM_RBUTTONUP:
+        //鼠标移动
     case WM_MOUSEMOVE:
         m_pMouse->ProcessMessage(msg, wParam, lParam);//处理鼠标信息     
         return 0;
+        //获取键盘信息
     case WM_KEYDOWN:
+
     case WM_SYSKEYDOWN:
+
     case WM_KEYUP:      
+
     case WM_SYSKEYUP:
         m_pKeyboard->ProcessMessage(msg, wParam, lParam);//鼠标键盘信息的处理
         return 0;    

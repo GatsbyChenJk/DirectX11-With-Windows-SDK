@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\CpuTimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\DXTrace.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\GameApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\Keyboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\Mouse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\d3dApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\25768\Desktop\四棱锥操作\d3dUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\CpuTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\DXTrace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\GameApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\Keyboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\Mouse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\WinMin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\d3dApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\25768\Desktop\四棱锥操作\d3dUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\25768\Desktop\四棱锥操作\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <FXCompile Include="C:\Users\25768\Desktop\四棱锥操作\HLSL\Cube_PS.hlsl">
+      <Filter>HLSL Files</Filter>
+    </FXCompile>
+    <FXCompile Include="C:\Users\25768\Desktop\四棱锥操作\HLSL\Cube_VS.hlsl">
+      <Filter>HLSL Files</Filter>
+    </FXCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\25768\Desktop\四棱锥操作\HLSL\Cube.hlsli">
+      <Filter>HLSL Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="HLSL Files">
+      <UniqueIdentifier>{DFDEEEE5-1F0D-3F6E-8049-A538955D9319}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D073517D-4071-3E48-A1ED-FA0E3E8AED5E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{7BBD7C84-BD74-3B99-B289-EB2BD00BD800}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

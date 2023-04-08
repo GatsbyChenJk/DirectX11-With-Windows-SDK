@@ -1,0 +1,10 @@
+^C:\USERS\25768\DESKTOP\WEEK2\1\CMAKEFILES\FB175DA63C0625350FB45A79D749ADA4\GENERATE.STAMP.RULE
+setlocal
+D:\Cmake\bin\cmake.exe -SC:/Users/25768/Desktop/四棱锥操作 -BC:/Users/25768/Desktop/Week2/1 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/25768/Desktop/Week2/1/Project.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
