@@ -10,6 +10,7 @@ add_subdirectory("09 Texture Mapping")
 add_subdirectory("Week3")
 add_subdirectory("TextureRotate")
 add_subdirectory("TextureSampling")
+add_subdirectory("WireFrameMode")
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Texture)
 	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Texture DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
