@@ -225,36 +225,47 @@ void GameApp::UpdateBezierSurface()
 
 void GameApp::UpdateTorus()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    //ImGuiIO& io = ImGui::GetIO();
+    ImGui::SliderFloat4("QuadEdgeTess", m_TorusPatchEdgeTess, 1.0f, 10.0f, "%.1f");
+    ImGui::SliderFloat2("QuadInsideTess", m_TorusPatchInsideTess, 1.0f, 10.0f, "%.1f");
     ImGui::SliderFloat("insideRadius", &m_TorusRadiusInside, 1.0f, 10.0f, "%.1f");
     ImGui::SliderFloat("outsideRadius", &m_TorusRadiusOutside, 1.0f, 10.0f, "%.1f");
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
-    {
-        m_Theta = XMScalarModAngle(m_Theta + io.MouseDelta.x * 0.01f);
-        m_Phi += -io.MouseDelta.y * 0.01f;
-    }
-    m_Radius -= io.MouseWheel;
 
-    // 限制Phi
-    m_Phi = std::clamp(m_Phi, XM_PI / 18, 1.0f - XM_PI / 18);
-    // 限制半径
-    m_Radius = std::clamp(m_Radius, 1.0f, 100.0f);
-
-    XMVECTOR posVec = XMVectorSet(
-        m_Radius * sinf(m_Phi) * cosf(m_Theta),
-        m_Radius * cosf(m_Phi),
-        m_Radius * sinf(m_Phi) * sinf(m_Theta),
-        0.0f);
+    m_pEffectHelper->GetConstantBufferVariable("g_QuadEdgeTess")->SetFloatVector(4, m_TorusPatchEdgeTess);
+    m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(2, m_TorusPatchInsideTess);
 
     // *****************
     // 更新数据并应用
     //
-    XMMATRIX WVP = XMMatrixLookAtLH(posVec, g_XMZero, g_XMIdentityR1) *
-        XMMatrixPerspectiveFovLH(XM_PIDIV2, AspectRatio(), 0.1f, 1000.0f);
-    WVP = XMMatrixTranspose(WVP);
-    m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, (const FLOAT*)&WVP);
     m_pEffectHelper->GetConstantBufferVariable("g_QuadEdgeTess")->SetFloatVector(4, m_TorusPatchEdgeTess);
     m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(2, m_TorusPatchInsideTess);
+    //if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+    //{
+    //    m_Theta = XMScalarModAngle(m_Theta + io.MouseDelta.x * 0.01f);
+    //    m_Phi += -io.MouseDelta.y * 0.01f;
+    //}
+    //m_Radius -= io.MouseWheel;
+
+    //// 限制Phi
+    //m_Phi = std::clamp(m_Phi, XM_PI / 18, 1.0f - XM_PI / 18);
+    //// 限制半径
+    //m_Radius = std::clamp(m_Radius, 1.0f, 100.0f);
+
+    //XMVECTOR posVec = XMVectorSet(
+    //    m_Radius * sinf(m_Phi) * cosf(m_Theta),
+    //    m_Radius * cosf(m_Phi),
+    //    m_Radius * sinf(m_Phi) * sinf(m_Theta),
+    //    0.0f);
+
+    //// *****************
+    //// 更新数据并应用
+    ////
+    //XMMATRIX WVP = XMMatrixLookAtLH(posVec, g_XMZero, g_XMIdentityR1) *
+    //    XMMatrixPerspectiveFovLH(XM_PIDIV2, AspectRatio(), 0.1f, 1000.0f);
+    //WVP = XMMatrixTranspose(WVP);
+    //m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, (const FLOAT*)&WVP);
+    //m_pEffectHelper->GetConstantBufferVariable("g_QuadEdgeTess")->SetFloatVector(4, m_TorusPatchEdgeTess);
+    //m_pEffectHelper->GetConstantBufferVariable("g_QuadInsideTess")->SetFloatVector(2, m_TorusPatchInsideTess);
 }
 
 void GameApp::DrawTriangle()
@@ -343,17 +354,17 @@ void GameApp::DrawTorusSurface()
     UINT offsets[1] = { 0 };
     m_pd3dImmediateContext->IASetVertexBuffers(0, 1, m_pTorusVB.GetAddressOf(), strides, offsets);
     m_pd3dImmediateContext->IASetInputLayout(m_pInputLayout.Get());
-    m_pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_2_CONTROL_POINT_PATCHLIST);
+    m_pd3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 
     m_pEffectHelper->GetConstantBufferVariable("g_Color")->SetFloatVector(4, Colors::White);
     m_pEffectHelper->GetEffectPass("Tessellation_Torus")->Apply(m_pd3dImmediateContext.Get());
     //获取细分顶点数
-    m_pTorusVB->GetDesc(&TorusVBDesc);
+    /*m_pTorusVB->GetDesc(&TorusVBDesc);
     UINT bufferSize = TorusVBDesc.ByteWidth;
     UINT vertexSize = sizeof(XMFLOAT4);
-    UINT vertexCount = bufferSize / vertexSize;
+    UINT vertexCount = bufferSize / vertexSize;*/
   
-    m_pd3dImmediateContext->Draw(vertexCount, 0);
+    m_pd3dImmediateContext->Draw(4, 0);
 }
 
 bool GameApp::InitResource()
@@ -451,7 +462,7 @@ bool GameApp::InitResource()
 
     ComPtr<ID3DBlob> blob;
     D3D11_INPUT_ELEMENT_DESC inputElemDesc[1] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },       
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },       
     };
 
     m_pEffectHelper->SetBinaryCacheDirectory(L"Shaders\\Cache");
