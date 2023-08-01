@@ -251,22 +251,22 @@ void BasicEffect::SetTextureDisplacement(ID3D11ShaderResourceView* textureDispla
 {
     pImpl->m_pEffectHelper->SetShaderResourceByName("g_DisplacementMap", textureDisplacement);
 }
-
-//新增
-void BasicEffect::SetTextureOutput(ID3D11ShaderResourceView* textureOutput)
+//绘制FFT的偏移纹理
+void BasicEffect::SetTextureOriginalDisplacement(ID3D11ShaderResourceView* textureDisplacement)
 {
-    pImpl->m_pEffectHelper->SetShaderResourceByName("OutputRT", textureOutput);
+    pImpl->m_pEffectHelper->SetShaderResourceByName("g_OriginalDisplacementMap", textureDisplacement);
+}
+//绘制FFT的法线纹理
+void BasicEffect::SetTextureNormal(ID3D11ShaderResourceView* texture)
+{
+    pImpl->m_pEffectHelper->SetShaderResourceByName("g_NormalMap", texture);
+}
+//用于避免同名方法，且用于撤下偏移纹理
+void BasicEffect::SetTextureDebug(ID3D11ShaderResourceView* textureDebug)
+{
+    pImpl->m_pEffectHelper->SetShaderResourceByName("g_OriginalDisplacementMap", textureDebug);
 }
 
-void BasicEffect::SetTextureNormal(ID3D11ShaderResourceView* textureNormal)
-{
-    pImpl->m_pEffectHelper->SetShaderResourceByName("NormalRT", textureNormal);
-}
-
-void BasicEffect::SetTextureBubbles(ID3D11ShaderResourceView* textureBubbles)
-{
-    pImpl->m_pEffectHelper->SetShaderResourceByName("BubblesRT", textureBubbles);
-}
 
 void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 {

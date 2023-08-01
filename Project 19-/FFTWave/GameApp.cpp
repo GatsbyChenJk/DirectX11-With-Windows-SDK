@@ -72,81 +72,114 @@ void GameApp::UpdateScene(float dt)
     m_BasicEffect.SetViewMatrix(m_pCamera->GetViewMatrixXM());
     m_BasicEffect.SetEyePos(m_pCamera->GetPosition());
 
-    if (ImGui::Begin("Waves"))
+    /*if (ImGui::Begin("Waves"))
     {
         static const char* wavemode_strs[] = {
             "CPU",
-            "GPU",
-            "FFT"
+            "GPU"
         };
         if (ImGui::Combo("Waves Mode", &m_WavesMode, wavemode_strs, ARRAYSIZE(wavemode_strs)))
         {
-            if (m_WavesMode == 0)
+            if (m_WavesMode)
                 m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-            else if(m_WavesMode == 1)
+            else
                 m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-            else 
-                m_FFTWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.0f, 0.0f);                          
-                /*ImGui::SliderFloat2("Wind", wind, 1.0f, 10.0f, "%.1f");
-                ImGui::SliderFloat("Lambda", &Lambda, -10.0f, 10.0f, "%.1f");
-                ImGui::SliderFloat("H", &Height, 1.0f, 100.0f, "%.1f");
-                ImGui::SliderFloat("Bubbles", &Bubbles, 1.0f, 100.0f, "%.1f");
-                ImGui::SliderFloat("BubblesScale", &BubblesHold, 1.0f, 100.0f, "%.1f");*/
-                //m_FFTWaves.FFTPreCompute(m_pd3dImmediateContext.Get(), 256, wind, Lambda, Height, Bubbles, BubblesHold);
-                
-                //m_pEffectHelper->GetConstantBufferVariable("WindAndSeed")->SetFloatVector(2,wind);
-               /* m_pEffectHelper->GetConstantBufferVariable("Lambda")->SetFloat(Lambda);
-                m_pEffectHelper->GetConstantBufferVariable("HeightScale")->SetFloat(Height);
-                m_pEffectHelper->GetConstantBufferVariable("BubblesScale")->SetFloat(Bubbles);
-                m_pEffectHelper->GetConstantBufferVariable("BubblesThreshold")->SetFloat(BubblesHold);*/
 
         }
         if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
         {
             m_BasicEffect.SetFogState(m_EnabledFog);
         }
-        static float wind[2] = { 0.1f,0.2f };
-        float Lambda = -1.0f;
-        float Height = 1.0f;
-        float Bubbles = 1.0f;
-        float BubblesHold = 1.0f;
-        ImGui::SliderFloat2("Wind", wind, 1.0f, 10.0f, "%.1f");
-        ImGui::SliderFloat("Lambda", &Lambda, -10.0f, 10.0f, "%.1f");
-        ImGui::SliderFloat("H", &Height, 1.0f, 100.0f, "%.1f");
-        ImGui::SliderFloat("Bubbles", &Bubbles, 1.0f, 100.0f, "%.1f");
-        ImGui::SliderFloat("BubblesScale", &BubblesHold, 1.0f, 100.0f, "%.1f");
-        m_FFTWaves.FFTPreCompute(m_pd3dImmediateContext.Get(), 256, wind, Lambda, Height, Bubbles, BubblesHold);
-    }
-    ImGui::End();
-    ImGui::Render();
+    }*/
 
-    // 每1/4s生成一个随机水波
-    if (m_Timer.TotalTime() - m_BaseTime >= 0.25f)
+    if (ImGui::Begin("Waves"))
     {
-        m_BaseTime += 0.25f;
-        if (m_WavesMode == 0)
+        static const char* wavemode_strs[] = {
+           "DeBug",
+            "Wave"
+        };
+        if (ImGui::Combo("Mode", &m_WavesMode, wavemode_strs, ARRAYSIZE(wavemode_strs)))
         {
-            m_GpuWaves.Disturb(m_pd3dImmediateContext.Get(), 
-                m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
-                m_MagnitudeRange(m_RandEngine));
+            /*           if (m_WavesMode)
+                           m_Ocean.InitResource(m_pd3dDevice.Get(), 1024, 1024, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);*/
+            if (m_WavesMode)
+            {
+                m_BasicEffect.SetWavesStates(true);
+            }
+            else
+            {
+                m_BasicEffect.SetWavesStates(false);
+            }
+
+           
         }
-        else if(m_WavesMode == 1)
+            if (ImGui::Checkbox("Enable Fog", &m_EnabledFog))
+            {
+                m_BasicEffect.SetFogState(m_EnabledFog);
+            }
+
+        static float L = 25.6;
+        static float A = 1.0f;
+        static float G = 9.8f;
+        static float wind_theta = 0;
+        static float wind_speed = 1;
+        const float PI = 3.1415926f;
+        float wind[] = { wind_speed * cosf(wind_theta * PI), wind_speed * sinf(wind_theta * PI) };
+        if (ImGui::SliderFloat("L(Ocean Length)", &L, 0, 256, "%.1f"))
         {
-            m_CpuWaves.Disturb(m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
-                m_MagnitudeRange(m_RandEngine));
+            m_FFTWaves.FFTPrecompute(m_pd3dImmediateContext.Get(), L, A, G, wind);
+        }
+        if (ImGui::SliderFloat("A(Philip Constant)", &A, 0, 100, "%.1f"))
+        {
+            m_FFTWaves.FFTPrecompute(m_pd3dImmediateContext.Get(), L, A, G, wind);
+        }
+        if (ImGui::SliderFloat("G(Gravity: 9.8 N/s^2 normally)", &G, 0, 100, "%.1f"))
+        {
+            m_FFTWaves.FFTPrecompute(m_pd3dImmediateContext.Get(), L, A, G, wind);
+        }
+        if (ImGui::SliderFloat("Wind Angle", &wind_theta, -1, 1, "%.2f"))
+        {
+            float wind[] = { wind_speed * cosf(wind_theta * PI), wind_speed * sinf(wind_theta * PI) };
+            m_FFTWaves.FFTPrecompute(m_pd3dImmediateContext.Get(), L, A, G, wind);
+        }
+        if (ImGui::SliderFloat("Wind Speed", &wind_speed, 0, 100, "%.1f"))
+        {
+            float wind[] = { wind_speed * cosf(wind_theta * PI), wind_speed * sinf(wind_theta * PI) };
+            m_FFTWaves.FFTPrecompute(m_pd3dImmediateContext.Get(), L, A, G, wind);
         }
 
-            
     }
 
-    // 更新波浪
-    if (m_WavesMode == 0)
-        m_GpuWaves.Update(m_pd3dImmediateContext.Get(), dt);
-    else if (m_WavesMode == 1)
-        m_CpuWaves.Update(dt);
-    else
+        ImGui::End();
+        ImGui::Render();
+
         m_FFTWaves.FFTUpdate(m_pd3dImmediateContext.Get(), dt);
+
+        // 每1/4s生成一个随机水波
+       /* if (m_Timer.TotalTime() - m_BaseTime >= 0.25f)
+        {
+            m_BaseTime += 0.25f;
+            if (m_WavesMode)
+            {
+                m_GpuWaves.Disturb(m_pd3dImmediateContext.Get(),
+                    m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
+                    m_MagnitudeRange(m_RandEngine));
+            }
+            else
+            {
+                m_CpuWaves.Disturb(m_RowRange(m_RandEngine), m_ColRange(m_RandEngine),
+                    m_MagnitudeRange(m_RandEngine));
+            }
+
+        }*/
+
+        // 更新波浪
+       /* if (m_WavesMode)
+            m_GpuWaves.Update(m_pd3dImmediateContext.Get(), dt);
+        else
+            m_CpuWaves.Update(dt);*/
 }
+
 
 void GameApp::DrawScene()
 {
@@ -173,18 +206,19 @@ void GameApp::DrawScene()
     //
     m_BasicEffect.SetRenderDefault();
     //m_Land.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+    
+    m_FFTWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+
     // ******************
     // 2. 绘制半透明/透明对象
     //
     m_BasicEffect.SetRenderTransparent();
     //m_WireFence.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
-    if (m_WavesMode == 0)
+   /* if (m_WavesMode)
         m_GpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-    else if (m_WavesMode == 1)
-        m_CpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
     else
-        m_FFTWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+        m_CpuWaves.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);*/
     
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -233,19 +267,19 @@ bool GameApp::InitResource()
     // ******************
     // 初始化水面波浪
     //
-    m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
-    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+    /*m_CpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);
+    m_GpuWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.05f, 0.1f);*/
     m_FFTWaves.InitResource(m_pd3dDevice.Get(), 256, 256, 5.0f, 5.0f, 0.03f, 0.625f, 2.0f, 0.2f, 0.0f, 0.0f);
-    float wind[2] = { 0.1f,0.2f };
-    m_FFTWaves.FFTPreCompute(m_pd3dImmediateContext.Get(), 256, wind,-1.0f,1.0f,1.0f,1.0f);
+    float windSpeedAndDir[] = { 1, 0 };
+    m_FFTWaves.FFTPrecompute(m_pd3dImmediateContext.Get(), 256, 1, 9.9, windSpeedAndDir);
 
     // ******************
     // 初始化随机数生成器
     //
-    m_RandEngine.seed(std::random_device()());
+    /*m_RandEngine.seed(std::random_device()());
     m_RowRange = std::uniform_int_distribution<UINT>(5, m_CpuWaves.RowCount() - 5);
     m_ColRange = std::uniform_int_distribution<UINT>(5, m_CpuWaves.ColumnCount() - 5);
-    m_MagnitudeRange = std::uniform_real_distribution<float>(0.5f, 1.0f);
+    m_MagnitudeRange = std::uniform_real_distribution<float>(0.5f, 1.0f);*/
     
     // ******************
     // 初始化摄像机

@@ -68,9 +68,17 @@ protected:
 
     float m_FlowSpeedX = 0.0f;          // 水流X方向速度
     float m_FlowSpeedY = 0.0f;          // 水流Y方向速度
-    float m_TimeStep = 0.0f;            // 时间步长
-    float m_SpatialStep = 0.0f;         // 空间步长
-    float m_AccumulateTime = 0.0f;      // 累积时间
+    //float m_TimeStep = 0.0f;            // 时间步长
+    //float m_SpatialStep = 0.0f;         // 空间步长
+    //float m_AccumulateTime = 0.0f;      // 累积时间
+
+    float m_HightScale = 0.5;             // 高度
+    float m_Lambda = 1;                   // 纹理偏移
+
+    float m_L{};
+    float m_A{};
+    float m_G{};
+
 
     Model m_Model;
     GeometryData m_MeshData;
@@ -179,67 +187,47 @@ public:
     FFTWaves(FFTWaves&&) = default;
     FFTWaves& operator=(FFTWaves&&) = default;
 
+    // 要求顶点行数和列数都能被16整除，以保证不会有多余
+    // 的顶点被划入到新的线程组当中
     void InitResource(
         ID3D11Device* device,
-        uint32_t rows,                  // 顶点行数
-        uint32_t cols,                  // 顶点列数
-        float texU,                     // 纹理坐标U方向最大值
-        float texV,                     // 纹理坐标V方向最大值
-        float timeStep,                 // 时间步长
-        float spatialStep,              // 空间步长
-        float waveSpeed,                // 波速
-        float damping,                  // 粘性阻尼力
-        float flowSpeedX,               // 水流X方向速度
-        float flowSpeedY);              // 水流Y方向速度
+        uint32_t rows,          // 顶点行数
+        uint32_t cols,          // 顶点列数
+        float texU,             // 纹理坐标U方向最大值
+        float texV,             // 纹理坐标V方向最大值
+        float timeStep,         // 时间步长
+        float spatialStep,      // 空间步长
+        float waveSpeed,        // 波速
+        float damping,          // 粘性阻尼力
+        float flowSpeedX,       // 水流X方向速度
+        float flowSpeedY);      // 水流Y方向速度
 
-    //只需要传递一次的cb
-    struct {
-        float m_SpatialStep = 0.0f;			// 空间步长
-        int fftSize;                        // fft纹理大小
-        DirectX::XMFLOAT2 g_pad1;
-    } m_CBInitSettings = {};
-
-    //更新时维护的参数结构体
-    struct {
-        float WindAndSeed[4] = {0.1f, 0.2f, 0.0, 0.0}; // 风向和随机种子 xy为风, zw为两个随机种子
-        float Lambda = -1.0;                                      // 控制偏移大小
-        float HeightScale = 1.0;                                  // 高度影响
-        float BubblesScale = 1.0;                                 // 泡沫强度
-        float BubblesThreshold = 1.0;                             // 泡沫阈值
-        float A = 10;                                             // 海浪高度因子
-        float Time = 0.0f;		                                  // 累积时间
-        DirectX::XMFLOAT2 g_pad2;
-    } m_CBUpdataSettings = {};                                    // 对应FFTWaves.hlsli的常量缓冲区
-
-    //专门传递Ns的结构体（用于FFT计算时的阶数）
-    struct {
-        int ns;
-        DirectX::XMFLOAT3 g_pad3;
-    }m_CBns = {};
- 
-    void FFTPreCompute(ID3D11DeviceContext* deviceContext,float L ,float wind[2], float Lambda, float H, float B, float BTs);
+    void FFTPrecompute(ID3D11DeviceContext* deviceContext, float L, float A, float G, float wind[2]);
 
     void FFTUpdate(ID3D11DeviceContext* deviceContext, float dt);
 
+    //void Update(ID3D11DeviceContext* deviceContext, float dt);
+
+    //// 在顶点[i][j]处激起高度为magnitude的波浪
+    //// 仅允许在1 < i < rows和1 < j < cols的范围内激起
+    //void Disturb(ID3D11DeviceContext* deviceContext, uint32_t i, uint32_t j, float magnitude);
+    // 绘制水面
     void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+
 
 private:
 
-    std::unique_ptr<EffectHelper> m_pEffectHelper;
+    static std::unique_ptr<EffectHelper> m_pEffectHelper;
 
-    //用ComPtr管理纹理资源
+    std::unique_ptr<Texture2D> m_pOriginalOffsetTexture;
+    std::unique_ptr<Texture2D> m_pNormalTexture;
+    std::unique_ptr<Texture2D> m_pGerstnerOffset;
 
-    std::unique_ptr<Texture2D> m_pGaussianRandomRT;         // 高斯随机数对
-    std::unique_ptr<Texture2D> m_pHeightSpectrumRT;         // 高度频谱
-    std::unique_ptr<Texture2D> m_pDisplaceXSpectrumRT;      // x方向偏移频谱
-    std::unique_ptr<Texture2D> m_pDisplaceZSpectrumRT;      // z方向偏移频谱
-    std::unique_ptr<Texture2D> m_pDisplaceRT;               // （总）偏移频谱
-    std::unique_ptr<Texture2D> m_pInputRT;                  // FFT输入纹理
-    std::unique_ptr<Texture2D> m_pOutputRT;                 // FFT输出纹理
-    std::unique_ptr<Texture2D> m_pNormalRT;                 // 法线纹理
-    std::unique_ptr<Texture2D> m_pBubblesRT;                // 泡沫纹理
+    std::unique_ptr<Texture2D> m_pHTide0Buffer;
+    std::unique_ptr<Texture2D> m_pHeight;
+    std::unique_ptr<Texture2D> m_pDisplaceXZ;
+    std::unique_ptr<Texture2D> m_pGrad;
 
-    ComPtr<ID3D11Buffer> m_pUpdataConstantBuffer;           // 更新数据的常量缓冲区
 };
 
 #endif

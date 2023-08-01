@@ -42,14 +42,16 @@ private:
 
     BasicEffect m_BasicEffect;									// 对象渲染特效管理
 
-    GameObject m_Land;											// 地面对象
-    GameObject m_WireFence;										// 篱笆盒
-    CpuWaves m_CpuWaves;                                        // CPU水波
-    GpuWaves m_GpuWaves;                                        // GPU水波
-    FFTWaves m_FFTWaves;                                        // FFT水波
+    //GameObject m_Land;											// 地面对象
+    //GameObject m_WireFence;										// 篱笆盒
+    
+     FFTWaves m_FFTWaves;                                         // FFT水波
+    //CpuWaves m_CpuWaves;                                        // CPU水波
+    //GpuWaves m_GpuWaves;                                        // GPU水波
+                                                                 
 
     std::unique_ptr<Depth2D> m_pDepthTexture;                   // 深度纹理
-    std::unique_ptr<Texture2D> m_pLitTexture;                   // 场景绘制的缓冲区   
+    std::unique_ptr<Texture2D> m_pLitTexture;                   // 场景绘制的缓冲区
 
     float m_BaseTime = 0.0f;									// 控制水波生成的基准时间
     int m_WavesMode = 1;                                        // 波浪绘制模式，0-GPU，1-CPU
